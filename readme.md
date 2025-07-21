@@ -1,77 +1,108 @@
-# NATS AWS Events 🚀
+# Lambda Orchestrator with NATS
 
-NATS AWS Events is a lightweight, event-driven execution system built on **NATS JetStream** and **AWS Lambda**. It allows you to reliably trigger Lambda functions with built-in **delayed retries**, **status checking**, and **streaming-based orchestration** — without relying on SQS or EventBridge.
+A Rust-based event-driven system to manage and trigger AWS Lambda functions, offering features like delayed retries, observability, and future support for a user-friendly web interface to schedule and configure events similar to AWS EventBridge.
 
----
+## 🚀 Overview
 
-## 🌟 Features
+This project provides a serverless orchestration layer using **NATS JetStream** for managing events and **AWS Lambda** for compute. It ensures:
 
-- ✅ Trigger AWS Lambda functions from NATS messages
-- 🔁 Automatic retry logic with increasing delays
-- ⏱️ Delayed message scheduling using JetStream headers
-- 📡 Lightweight and cost-effective: no SQS, EventBridge, or DBs
-- 🔧 Built in Rust with async support and AWS SDK
+- Triggering Lambda functions based on events.
+- Monitoring Lambda execution using **CloudWatch Logs**.
+- Retrying failed executions with exponential backoff (up to 24 hours).
+- Future support for UI via **Actix Web** to:
+  - Provide AWS credentials.
+  - Configure triggers, schedules, and rules.
+  - Mimic AWS EventBridge-like routing and scheduling.
 
----
+## 🛠 Components
 
-## 🛠️ Architecture Overview
+### 1. `main.rs`
+Initializes NATS connection and runs two core services in parallel:
+- `lambda_trigger`: Consumes events from NATS and invokes Lambda.
+- `status_checker`: Checks Lambda status and retries if failed.
 
-1. `run_lambda_trigger` listens to the `my.event` subject and invokes AWS Lambda based on incoming payloads.
-2. It schedules a status-check event to `check.lambda.status` with a delayed message.
-3. `run_status_checker` checks the status of the invoked Lambda (stubbed in example) and re-sends the event to `my.event` if it failed.
-4. Retries are capped and spaced out intelligently using JetStream headers.
+### 2. `lambda_trigger.rs`
+- Connects to the `my_bridge` stream in NATS.
+- Subscribes to `my.event` subject.
+- Invokes Lambda with the payload.
+- Publishes a delayed event to `check.lambda.status` for retry tracking.
 
----
+### 3. `status_checker.rs`
+- Monitors delayed messages on `my.status`.
+- Checks Lambda execution status from CloudWatch Logs.
+- If failed, republishes the event to `my.event` with incremental delay.
 
-## 🚀 Getting Started
+## 🧪 Local Development
 
-### Prerequisites
-
-- Rust (stable)
-- Docker (for local NATS setup)
-- AWS credentials with Lambda invoke permissions
-- NATS JetStream running locally or on a server
-
-### Clone and Run
+### Run NATS Locally (JetStream Enabled)
 
 ```bash
-git clone https://github.com/leera-app/nats-aws-events.git
-cd nats-aws-events
-cargo build
-./run_all.sh
+docker run -d --name nats-js -p 4222:4222 -p 8222:8222 -v $(pwd)/nats-data:/data nats -js -sd /data -m 8222
 ```
-### Run NATS locally with JetStream
+
+Or use Docker Compose:
+
+```yaml
+# docker-compose.yml
+version: '3'
+services:
+  nats:
+    image: nats:latest
+    ports:
+      - "4222:4222"
+      - "8222:8222"
+    volumes:
+      - ./nats-data:/data
+    command: -js -sd /data -m 8222
+```
+
+Then:
+
 ```bash
-docker compose up -d
+docker-compose up -d
 ```
 
+### Run the Rust Project
 
-## 🧪 Development
+```bash
+cargo run
+```
 
-### Project is organized into:
+Ensure AWS credentials are configured via environment or AWS CLI.
 
-- lambda_trigger.rs: listens to events and invokes Lambda
-- status_checker.rs: checks status and retries failed invocations
+## 📦 Features (Planned)
 
+- [x] Trigger Lambda with payloads.
+- [x] Retry mechanism using delayed NATS headers.
+- [x] CloudWatch Logs integration.
+- [ ] Actix Web UI for configuring:
+  - AWS credentials
+  - Rule-based Lambda routing
+  - Scheduled triggers like EventBridge
+- [ ] Secure credential storage
+- [ ] Role-based access for managing trigger rules
 
 ## 🤝 Contributing
 
-We welcome contributions from the community! Here’s how you can help:
+We welcome contributions!
 
-Fork the repo
-Create a feature branch: git checkout -b my-feature
-Commit your changes: git commit -m 'Add cool feature'
-Push and open a Pull Request
-Please make sure your code is well-tested and documented.
+### Steps:
+1. Fork the repo
+2. Create your feature branch (`git checkout -b feature/YourFeature`)
+3. Commit your changes (`git commit -am 'Add new feature'`)
+4. Push to the branch (`git push origin feature/YourFeature`)
+5. Open a Pull Request
 
+### Areas to Contribute:
+- UI using Actix Web
+- Enhanced error handling
+- Support for other AWS services
+- Unit & integration tests
 
 ## 📄 License
 
 This project is licensed under the MIT License.
 
+---
 
-## 🙏 Acknowledgements
-
-- NATS.io
-- AWS Lambda
-- Rust Language
+Built with ❤️ in Rust using NATS and AWS Lambda.
