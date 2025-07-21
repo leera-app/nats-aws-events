@@ -1,0 +1,1 @@
+{"Created":"2025-07-21T12:10:24.993037469Z","Name":"lambda_trigger","durable_name":"lambda_trigger","name":"lambda_trigger","deliver_policy":"all","ack_policy":"explicit","ack_wait":30000000000,"max_deliver":-1,"replay_policy":"instant","max_waiting":512,"max_ack_pending":1000,"num_replicas":0,"metadata":{"_nats.req.level":"0"}}

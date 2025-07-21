@@ -1,0 +1,16 @@
+
+services:
+  nats:
+    image: nats:latest
+    container_name: nats-js
+    ports:
+      - "4222:4222"   # NATS client port
+      - "6222:6222"   # NATS route port (for clustering)
+      - "8222:8222"   # Monitoring/JetStream dashboard
+    command: >
+      -js
+      -sd /data/jetstream
+      -m 8222
+    volumes:
+      - ./nats-data:/data
+    restart: unless-stopped
