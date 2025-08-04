@@ -4,10 +4,15 @@ use aws_sdk_lambda::primitives::Blob;
 use serde_json::Value;
 use futures::StreamExt;
 use anyhow::Result;
+use sled::Db;
 
-pub async fn run_lambda_trigger(client: Client, lambda_client: aws_sdk_lambda::Client) ->Result<(), Box<dyn std::error::Error>> {
+
+
+pub async fn run_lambda_trigger(client: Client, lambda_client: aws_sdk_lambda::Client,db: Db) ->Result<(), Box<dyn std::error::Error>> {
     // Connect to NATS
     // let client = async_nats::connect(nats_url).await?;
+    
+
     let js = jetstream::new(client.clone());
 
     let stream = match js.get_stream("my_bridge").await {
@@ -48,9 +53,17 @@ pub async fn run_lambda_trigger(client: Client, lambda_client: aws_sdk_lambda::C
         let msg = msg?;
         let payload: Value = serde_json::from_slice(&msg.payload)?;
 
-        let lambda_arn = payload["lambda_arn"]
+        let event_type = payload["event_type"]
             .as_str()
-            .ok_or_else(|| anyhow::anyhow!("missing lambda_arn"))?;
+            .ok_or_else(|| anyhow::anyhow!("missing event_type"))?;
+
+        let lambda_arn_bytes = db.get(event_type.as_bytes())?
+            .ok_or_else(|| anyhow::anyhow!("no rule found for event_type: {}", event_type))?;
+        let lambda_arn = String::from_utf8(lambda_arn_bytes.to_vec())?;
+
+        // let lambda_arn = payload["lambda_arn"]
+        //     .as_str()
+        //     .ok_or_else(|| anyhow::anyhow!("missing lambda_arn"))?;
         let retry_index = payload
             .get("retry_index")
             .and_then(Value::as_u64)

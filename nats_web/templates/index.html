@@ -1,0 +1,531 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Lambda Trigger Dashboard</title>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <style>
+        :root {
+            --primary: hsl(220, 90%, 56%); /* Vibrant blue for primary accents */
+            --primary-foreground: hsl(0, 0%, 100%); /* White text on primary */
+            --secondary: hsl(210, 40%, 96%); /* Light gray for secondary */
+            --secondary-foreground: hsl(222, 47%, 11%); /* Dark text */
+            --accent: hsl(220, 90%, 95%); /* Light blue accent */
+            --accent-foreground: hsl(220, 90%, 40%); /* Darker blue text */
+            --background: hsl(0, 0%, 98%); /* Very light gray background */
+            --foreground: hsl(222, 84%, 20%); /* Softer dark text */
+            --card: hsl(0, 0%, 100%); /* White cards */
+            --card-foreground: hsl(222, 84%, 20%); /* Softer text */
+            --border: hsl(214, 32%, 91%); /* Light border */
+            --muted: hsl(210, 40%, 96%); /* Muted gray */
+            --muted-foreground: hsl(215, 16%, 47%); /* Muted text */
+            --destructive: hsl(0, 84%, 60%); /* Red for destructive */
+            --destructive-foreground: hsl(0, 0%, 100%); /* White on red */
+            --success: hsl(142, 76%, 36%); /* Green for success */
+            --success-foreground: hsl(0, 0%, 100%); /* White on green */
+            --warning: hsl(38, 92%, 50%); /* Yellow for warning */
+            --warning-foreground: hsl(222, 47%, 11%); /* Dark text on yellow */
+            --info: hsl(200, 90%, 50%); /* Blue for info */
+            --radius: 0.75rem; /* Slightly larger radius for modular look */
+            --shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06); /* Softer shadows */
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+            background-color: var(--background);
+            color: var(--foreground);
+            line-height: 1.6;
+        }
+
+        .container {
+            max-width: 1280px; /* Slightly wider for modular feel */
+            margin: 0 auto;
+            padding: 2rem;
+        }
+
+        .header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 2rem;
+            padding: 1rem;
+            background-color: var(--card);
+            border-radius: var(--radius);
+            box-shadow: var(--shadow);
+        }
+
+        .header h1 {
+            font-size: 2rem;
+            font-weight: 700;
+            color: var(--primary);
+        }
+
+        .nav-links {
+            display: flex;
+            gap: 1rem;
+        }
+
+        .btn {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            padding: 0.625rem 1.25rem;
+            font-size: 0.875rem;
+            font-weight: 500;
+            border-radius: var(--radius);
+            border: none;
+            cursor: pointer;
+            text-decoration: none;
+            transition: all 0.2s ease;
+            gap: 0.5rem;
+            box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
+        }
+
+        .btn-primary {
+            background-color: var(--primary);
+            color: var(--primary-foreground);
+        }
+
+        .btn-primary:hover {
+            background-color: hsl(220, 90%, 50%);
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+        }
+
+        .btn-secondary {
+            background-color: var(--secondary);
+            color: var(--secondary-foreground);
+            border: 1px solid var(--border);
+        }
+
+        .btn-secondary:hover {
+            background-color: var(--accent);
+            color: var(--accent-foreground);
+        }
+
+        .btn-destructive {
+            background-color: var(--destructive);
+            color: var(--destructive-foreground);
+        }
+
+        .btn-destructive:hover {
+            background-color: hsl(0, 84%, 55%);
+        }
+
+        .grid {
+            display: grid;
+            gap: 1.5rem;
+            margin-bottom: 2rem;
+        }
+
+        .grid-3 {
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+        }
+
+        .grid-2 {
+            grid-template-columns: repeat(auto-fit, minmax(400px, 1fr));
+        }
+
+        .card {
+            background-color: var(--card);
+            border: 1px solid var(--border);
+            border-radius: var(--radius);
+            padding: 1.5rem;
+            box-shadow: var(--shadow);
+            transition: transform 0.2s ease;
+        }
+
+        .card:hover {
+            transform: translateY(-2px);
+        }
+
+        .card-header {
+            margin-bottom: 1rem;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .card-title {
+            font-size: 1.125rem;
+            font-weight: 600;
+            margin-bottom: 0.5rem;
+        }
+
+        .card-description {
+            color: var(--muted-foreground);
+            font-size: 0.875rem;
+        }
+
+        .metric-card {
+            text-align: center;
+            background: linear-gradient(to bottom right, var(--accent), var(--card));
+        }
+
+        .metric-value {
+            font-size: 2.25rem;
+            font-weight: 700;
+            color: var(--primary);
+            margin-bottom: 0.25rem;
+        }
+
+        .metric-label {
+            color: var(--muted-foreground);
+            font-size: 0.875rem;
+        }
+
+        .form-group {
+            margin-bottom: 1.25rem;
+        }
+
+        .form-label {
+            display: block;
+            font-weight: 500;
+            margin-bottom: 0.5rem;
+            color: var(--foreground);
+        }
+
+        .form-input, .form-select {
+            width: 100%;
+            padding: 0.625rem 0.875rem;
+            border: 1px solid var(--border);
+            border-radius: var(--radius);
+            background-color: var(--background);
+            font-size: 0.875rem;
+            transition: border-color 0.2s ease;
+        }
+
+        .form-input:focus, .form-select:focus {
+            outline: none;
+            border-color: var(--primary);
+            box-shadow: 0 0 0 3px hsl(220, 90%, 56% / 0.1);
+        }
+
+        .table {
+            width: 100%;
+            border-collapse: separate;
+            border-spacing: 0;
+            margin-top: 1rem;
+            border-radius: var(--radius);
+            overflow: hidden;
+            box-shadow: var(--shadow);
+        }
+
+        .table th,
+        .table td {
+            padding: 1rem;
+            text-align: left;
+            border-bottom: 1px solid var(--border);
+        }
+
+        .table th {
+            font-weight: 600;
+            background-color: var(--accent);
+            color: var(--accent-foreground);
+        }
+
+        .table tr:last-child td {
+            border-bottom: none;
+        }
+
+        .table tr:hover {
+            background-color: hsl(220, 90%, 98%);
+        }
+
+        .empty-state {
+            text-align: center;
+            padding: 3rem;
+            color: var(--muted-foreground);
+            background-color: var(--muted);
+            border-radius: var(--radius);
+        }
+
+        .empty-state i {
+            font-size: 3rem;
+            margin-bottom: 1rem;
+            opacity: 0.5;
+        }
+
+        .toast {
+            position: fixed;
+            top: 1rem;
+            right: 1rem;
+            padding: 1rem 1.5rem;
+            border-radius: var(--radius);
+            color: white;
+            z-index: 1000;
+            display: none;
+            box-shadow: var(--shadow);
+        }
+
+        .toast.success {
+            background-color: var(--success);
+        }
+
+        .toast.error {
+            background-color: var(--destructive);
+        }
+
+        .toast.info {
+            background-color: var(--info);
+        }
+
+        /* Dummy Components for Modular Look */
+        .chart-container {
+            height: 300px;
+            background-color: var(--card);
+            border: 1px solid var(--border);
+            border-radius: var(--radius);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.25rem;
+            color: var(--muted-foreground);
+            box-shadow: var(--shadow);
+        }
+
+        .recent-events {
+            margin-top: 2rem;
+        }
+
+        .recent-events .card-title {
+            margin-bottom: 1rem;
+        }
+
+        .event-list {
+            list-style: none;
+        }
+
+        .event-item {
+            padding: 1rem;
+            border-bottom: 1px solid var(--border);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .event-item:last-child {
+            border-bottom: none;
+        }
+
+        .event-time {
+            color: var(--muted-foreground);
+            font-size: 0.875rem;
+        }
+
+        @media (max-width: 768px) {
+            .container {
+                padding: 1rem;
+            }
+
+            .header {
+                flex-direction: column;
+                gap: 1rem;
+                align-items: stretch;
+            }
+
+            .nav-links {
+                justify-content: center;
+            }
+
+            .grid-2, .grid-3 {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header class="header">
+            <h1><i class="fas fa-bolt" style="color: var(--primary);"></i> Lambda Trigger Dashboard</h1>
+            <nav class="nav-links">
+                <a href="/credentials" class="btn btn-secondary">
+                    <i class="fas fa-key"></i> AWS Credentials
+                </a>
+            </nav>
+        </header>
+
+        <!-- Metrics Section -->
+        <div class="grid grid-3">
+            <div class="card metric-card">
+                <div class="metric-value">{{ rules.len() }}</div>
+                <div class="metric-label">Active Rules</div>
+            </div>
+            <div class="card metric-card">
+                <div class="metric-value">{{ lambda_arns.len()}}</div>
+                <div class="metric-label">Available Lambdas</div>
+            </div>
+            <div class="card metric-card">
+                <div class="metric-value">0</div>
+                <div class="metric-label">Events Today</div>
+            </div>
+        </div>
+
+        <!-- Main Content Grid -->
+        <div class="grid grid-2">
+            <!-- Create Rule Form -->
+            <div class="card">
+                <div class="card-header">
+                    <h2 class="card-title"><i class="fas fa-plus-circle" style="color: var(--primary);"></i> Create New Rule</h2>
+                    <p class="card-description">Configure event triggers for Lambda functions</p>
+                </div>
+                
+                <form action="/create-rule" method="post" id="ruleForm">
+                    <div class="form-group">
+                        <label for="event_type" class="form-label">Event Type</label>
+                        <input type="text" id="event_type" name="event_type" class="form-input" 
+                               placeholder="e.g., user.created, order.processed" required>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="lambda_arn" class="form-label">Lambda Function</label>
+                        {% if lambda_arns.len() > 0 %}
+                        <select id="lambda_arn" name="lambda_arn" class="form-select" required>
+                            <option value="">Select a Lambda function</option>
+                            {% for arn in lambda_arns %}
+                            <option value="{{ arn.0 }}">{{ arn.1 }}</option>
+                            {% endfor %}
+                        </select>
+                        {% else %}
+                        <input type="text" id="lambda_arn" name="lambda_arn" class="form-input" 
+                               placeholder="Lambda function ARN" required>
+                        <small class="card-description">Configure AWS credentials to see available functions</small>
+                        {% endif %}
+                    </div>
+                    
+                    <button type="submit" class="btn btn-primary">
+                        <i class="fas fa-save"></i> Create Rule
+                    </button>
+                </form>
+            </div>
+
+            <!-- Active Rules -->
+            <div class="card">
+                <div class="card-header">
+                    <h2 class="card-title"><i class="fas fa-list" style="color: var(--primary);"></i> Active Rules</h2>
+                    <p class="card-description">Currently configured trigger rules</p>
+                </div>
+                
+                {% if rules.len() >0 %}
+                <table class="table">
+                    <thead>
+                        <tr>
+                            <th>Event Type</th>
+                            <th>Lambda Function</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for rule in rules %}
+                        <tr>
+                            <td><code>{{ rule.event_type }}</code></td>
+                            <td>{{ rule.lambda_arn }}</td>
+                            <td>
+                                <button onclick="deleteRule('{{ rule.event_type }}')" class="btn btn-destructive btn-sm">
+                                    <i class="fas fa-trash"></i>
+                                </button>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+                {% else %}
+                <div class="empty-state">
+                    <i class="fas fa-inbox"></i>
+                    <p>No rules configured yet</p>
+                    <small>Create your first rule using the form on the left</small>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+
+        <!-- Dummy Component: Performance Chart -->
+        <div class="card">
+            <div class="card-header">
+                <h2 class="card-title"><i class="fas fa-chart-line" style="color: var(--primary);"></i> Lambda Performance Overview</h2>
+                <p class="card-description">Real-time metrics and trends (Dummy Chart)</p>
+            </div>
+            <div class="chart-container">
+                <!-- Placeholder for chart library like Chart.js -->
+                Chart Goes Here
+            </div>
+        </div>
+
+        <!-- Dummy Component: Recent Events Log -->
+        <div class="card recent-events">
+            <div class="card-header">
+                <h2 class="card-title"><i class="fas fa-clock" style="color: var(--primary);"></i> Recent Events</h2>
+                <p class="card-description">Latest triggered events (Dummy Data)</p>
+            </div>
+            <ul class="event-list">
+                <li class="event-item">
+                    <span>User Created - Lambda Executed</span>
+                    <span class="event-time">5 min ago</span>
+                </li>
+                <li class="event-item">
+                    <span>Order Processed - Success</span>
+                    <span class="event-time">15 min ago</span>
+                </li>
+                <li class="event-item">
+                    <span>Payment Failed - Retry Triggered</span>
+                    <span class="event-time">30 min ago</span>
+                </li>
+            </ul>
+        </div>
+    </div>
+
+    <!-- Toast Notification -->
+    <div id="toast" class="toast"></div>
+
+    <script>
+        // Form submission handler
+        document.getElementById('ruleForm').addEventListener('submit', function(e) {
+            showToast('Creating rule...', 'info');
+        });
+
+        // Delete rule function
+        function deleteRule(eventType) {
+            if (confirm(`Are you sure you want to delete the rule for "${eventType}"?`)) {
+                fetch(`/delete-rule/${eventType}`, {
+                    method: 'DELETE',
+                })
+                .then(response => {
+                    if (response.ok) {
+                        showToast('Rule deleted successfully!', 'success');
+                        setTimeout(() => location.reload(), 1000);
+                    } else {
+                        showToast('Failed to delete rule', 'error');
+                    }
+                })
+                .catch(error => {
+                    showToast('Error deleting rule', 'error');
+                });
+            }
+        }
+
+        // Toast notification function
+        function showToast(message, type = 'info') {
+            const toast = document.getElementById('toast');
+            toast.textContent = message;
+            toast.className = `toast ${type}`;
+            toast.style.display = 'block';
+            
+            setTimeout(() => {
+                toast.style.display = 'none';
+            }, 3000);
+        }
+
+        // Check for URL parameters to show success messages
+        const urlParams = new URLSearchParams(window.location.search);
+        if (urlParams.get('success') === 'rule-created') {
+            showToast('Rule created successfully!', 'success');
+        }
+    </script>
+</body>
+</html>

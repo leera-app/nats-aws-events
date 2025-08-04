@@ -1,0 +1,504 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Event Scheduler - Lambda Trigger Dashboard</title>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <style>
+        :root {
+            --primary: hsl(220, 90%, 56%); /* Vibrant blue for primary accents */
+            --primary-foreground: hsl(0, 0%, 100%); /* White text on primary */
+            --secondary: hsl(210, 40%, 96%); /* Light gray for secondary */
+            --secondary-foreground: hsl(222, 47%, 11%); /* Dark text */
+            --accent: hsl(220, 90%, 95%); /* Light blue accent */
+            --accent-foreground: hsl(220, 90%, 40%); /* Darker blue text */
+            --background: hsl(0, 0%, 98%); /* Very light gray background */
+            --foreground: hsl(222, 84%, 20%); /* Softer dark text */
+            --card: hsl(0, 0%, 100%); /* White cards */
+            --card-foreground: hsl(222, 84%, 20%); /* Softer text */
+            --border: hsl(214, 32%, 91%); /* Light border */
+            --muted: hsl(210, 40%, 96%); /* Muted gray */
+            --muted-foreground: hsl(215, 16%, 47%); /* Muted text */
+            --destructive: hsl(0, 84%, 60%); /* Red for destructive */
+            --destructive-foreground: hsl(0, 0%, 100%); /* White on red */
+            --success: hsl(142, 76%, 36%); /* Green for success */
+            --success-foreground: hsl(0, 0%, 100%); /* White on green */
+            --warning: hsl(38, 92%, 50%); /* Yellow for warning */
+            --warning-foreground: hsl(222, 47%, 11%); /* Dark text on yellow */
+            --info: hsl(200, 90%, 50%); /* Blue for info */
+            --radius: 0.75rem; /* Slightly larger radius for modular look */
+            --shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06); /* Softer shadows */
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+            background-color: var(--background);
+            color: var(--foreground);
+            line-height: 1.6;
+        }
+
+        .container {
+            max-width: 1280px;
+            margin: 0 auto;
+            padding: 2rem;
+        }
+
+        .header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 2rem;
+            padding: 1rem;
+            background-color: var(--card);
+            border-radius: var(--radius);
+            box-shadow: var(--shadow);
+        }
+
+        .header h1 {
+            font-size: 2rem;
+            font-weight: 700;
+            color: var(--primary);
+        }
+
+        .nav-links {
+            display: flex;
+            gap: 1rem;
+        }
+
+        .btn {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            padding: 0.625rem 1.25rem;
+            font-size: 0.875rem;
+            font-weight: 500;
+            border-radius: var(--radius);
+            border: none;
+            cursor: pointer;
+            text-decoration: none;
+            transition: all 0.2s ease;
+            gap: 0.5rem;
+            box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
+        }
+
+        .btn-primary {
+            background-color: var(--primary);
+            color: var(--primary-foreground);
+        }
+
+        .btn-primary:hover {
+            background-color: hsl(220, 90%, 50%);
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+        }
+
+        .btn-secondary {
+            background-color: var(--secondary);
+            color: var(--secondary-foreground);
+            border: 1px solid var(--border);
+        }
+
+        .btn-secondary:hover {
+            background-color: var(--accent);
+            color: var(--accent-foreground);
+        }
+
+        .btn-destructive {
+            background-color: var(--destructive);
+            color: var(--destructive-foreground);
+        }
+
+        .btn-destructive:hover {
+            background-color: hsl(0, 84%, 55%);
+        }
+
+        .grid {
+            display: grid;
+            gap: 1.5rem;
+            margin-bottom: 2rem;
+        }
+
+        .grid-2 {
+            grid-template-columns: repeat(auto-fit, minmax(400px, 1fr));
+        }
+
+        .card {
+            background-color: var(--card);
+            border: 1px solid var(--border);
+            border-radius: var(--radius);
+            padding: 1.5rem;
+            box-shadow: var(--shadow);
+            transition: transform 0.2s ease;
+        }
+
+        .card:hover {
+            transform: translateY(-2px);
+        }
+
+        .card-header {
+            margin-bottom: 1rem;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .card-title {
+            font-size: 1.125rem;
+            font-weight: 600;
+            margin-bottom: 0.5rem;
+        }
+
+        .card-description {
+            color: var(--muted-foreground);
+            font-size: 0.875rem;
+        }
+
+        .form-group {
+            margin-bottom: 1.25rem;
+        }
+
+        .form-label {
+            display: block;
+            font-weight: 500;
+            margin-bottom: 0.5rem;
+            color: var(--foreground);
+        }
+
+        .form-input, .form-select {
+            width: 100%;
+            padding: 0.625rem 0.875rem;
+            border: 1px solid var(--border);
+            border-radius: var(--radius);
+            background-color: var(--background);
+            font-size: 0.875rem;
+            transition: border-color 0.2s ease;
+        }
+
+        .form-input:focus, .form-select:focus {
+            outline: none;
+            border-color: var(--primary);
+            box-shadow: 0 0 0 3px hsl(220, 90%, 56% / 0.1);
+        }
+
+        .table {
+            width: 100%;
+            border-collapse: separate;
+            border-spacing: 0;
+            margin-top: 1rem;
+            border-radius: var(--radius);
+            overflow: hidden;
+            box-shadow: var(--shadow);
+        }
+
+        .table th,
+        .table td {
+            padding: 1rem;
+            text-align: left;
+            border-bottom: 1px solid var(--border);
+        }
+
+        .table th {
+            font-weight: 600;
+            background-color: var(--accent);
+            color: var(--accent-foreground);
+        }
+
+        .table tr:last-child td {
+            border-bottom: none;
+        }
+
+        .table tr:hover {
+            background-color: hsl(220, 90%, 98%);
+        }
+
+        .empty-state {
+            text-align: center;
+            padding: 3rem;
+            color: var(--muted-foreground);
+            background-color: var(--muted);
+            border-radius: var(--radius);
+        }
+
+        .empty-state i {
+            font-size: 3rem;
+            margin-bottom: 1rem;
+            opacity: 0.5;
+        }
+
+        .toast {
+            position: fixed;
+            top: 1rem;
+            right: 1rem;
+            padding: 1rem 1.5rem;
+            border-radius: var(--radius);
+            color: white;
+            z-index: 1000;
+            display: none;
+            box-shadow: var(--shadow);
+        }
+
+        .toast.success {
+            background-color: var(--success);
+        }
+
+        .toast.error {
+            background-color: var(--destructive);
+        }
+
+        .toast.info {
+            background-color: var(--info);
+        }
+
+        /* Dummy Components for Modular Look */
+        .calendar-preview {
+            height: 300px;
+            background-color: var(--card);
+            border: 1px solid var(--border);
+            border-radius: var(--radius);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.25rem;
+            color: var(--muted-foreground);
+            box-shadow: var(--shadow);
+        }
+
+        .recent-triggers {
+            margin-top: 2rem;
+        }
+
+        .recent-triggers .card-title {
+            margin-bottom: 1rem;
+        }
+
+        .trigger-list {
+            list-style: none;
+        }
+
+        .trigger-item {
+            padding: 1rem;
+            border-bottom: 1px solid var(--border);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .trigger-item:last-child {
+            border-bottom: none;
+        }
+
+        .trigger-time {
+            color: var(--muted-foreground);
+            font-size: 0.875rem;
+        }
+
+        @media (max-width: 768px) {
+            .container {
+                padding: 1rem;
+            }
+
+            .header {
+                flex-direction: column;
+                gap: 1rem;
+                align-items: stretch;
+            }
+
+            .grid-2 {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header class="header">
+            <h1><i class="fas fa-clock" style="color: var(--primary);"></i> Event Scheduler</h1>
+            <nav class="nav-links">
+                <a href="/" class="btn btn-secondary">
+                    <i class="fas fa-arrow-left"></i> Back to Dashboard
+                </a>
+            </nav>
+        </header>
+
+        <!-- Main Content Grid -->
+        <div class="grid grid-2">
+            <!-- Create Schedule Form -->
+            <div class="card">
+                <div class="card-header">
+                    <h2 class="card-title"><i class="fas fa-plus-circle" style="color: var(--primary);"></i> Create New Schedule</h2>
+                    <p class="card-description">Set up timed triggers for Lambda functions</p>
+                </div>
+                
+                <form action="/create-schedule" method="post" id="scheduleForm">
+                    <div class="form-group">
+                        <label for="event_type" class="form-label">Event Type</label>
+                        <input type="text" id="event_type" name="event_type" class="form-input" 
+                               placeholder="e.g., daily.backup, hourly.report" required>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="lambda_arn" class="form-label">Lambda Function</label>
+                        {% if lambda_arns.len() > 0 %}
+                        <select id="lambda_arn" name="lambda_arn" class="form-select" required>
+                            <option value="">Select a Lambda function</option>
+                            {% for arn in lambda_arns %}
+                            <option value="{{ arn.0 }}">{{ arn.1 }}</option>
+                            {% endfor %}
+                        </select>
+                        {% else %}
+                        <input type="text" id="lambda_arn" name="lambda_arn" class="form-input" 
+                               placeholder="Lambda function ARN" required>
+                        <small class="card-description">Configure AWS credentials to see available functions</small>
+                        {% endif %}
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="schedule" class="form-label">Schedule (Cron Expression)</label>
+                        <input type="text" id="schedule" name="schedule" class="form-input" 
+                               placeholder="e.g., 0 9 * * ? for daily at 9 AM" required>
+                        <small class="card-description">Use cron format or presets like 'every hour'</small>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="payload" class="form-label">Optional Payload (JSON)</label>
+                        <textarea id="payload" name="payload" class="form-input" rows="3" 
+                                  placeholder='{"key": "value"}'></textarea>
+                    </div>
+                    
+                    <button type="submit" class="btn btn-primary">
+                        <i class="fas fa-save"></i> Create Schedule
+                    </button>
+                </form>
+            </div>
+
+            <!-- Active Schedules -->
+            <div class="card">
+                <div class="card-header">
+                    <h2 class="card-title"><i class="fas fa-list" style="color: var(--primary);"></i> Active Schedules</h2>
+                    <p class="card-description">Currently configured scheduled triggers</p>
+                </div>
+                
+                {% if schedules.len() > 0 %}
+                <table class="table">
+                    <thead>
+                        <tr>
+                            <th>Event Type</th>
+                            <th>Lambda Function</th>
+                            <th>Schedule</th>
+                            <th>Next Trigger</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for schedule in schedules %}
+                        <tr>
+                            <td><code>{{ schedule.event_type }}</code></td>
+                            <td>{{ schedule.lambda_arn }}</td>
+                            <td>{{ schedule.cron }}</td>
+                            <td>{{ schedule.next_trigger }}</td>
+                            <td>
+                                <button onclick="editSchedule('{{ schedule.id }}')" class="btn btn-secondary btn-sm">
+                                    <i class="fas fa-edit"></i>
+                                </button>
+                                <button onclick="deleteSchedule('{{ schedule.id }}')" class="btn btn-destructive btn-sm">
+                                    <i class="fas fa-trash"></i>
+                                </button>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+                {% else %}
+                <div class="empty-state">
+                    <i class="fas fa-inbox"></i>
+                    <p>No schedules configured yet</p>
+                    <small>Create your first schedule using the form on the left</small>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+
+        <!-- Dummy Component: Schedule Calendar Preview -->
+        <div class="card">
+            <div class="card-header">
+                <h2 class="card-title"><i class="fas fa-calendar-alt" style="color: var(--primary);"></i> Schedule Preview</h2>
+                <p class="card-description">Visual overview of upcoming triggers (Dummy Calendar)</p>
+            </div>
+            <div class="calendar-preview">
+                <!-- Placeholder for calendar library like FullCalendar.js -->
+                Calendar Goes Here
+            </div>
+        </div>
+
+        <!-- Dummy Component: Recent Triggers Log -->
+        <div class="card recent-triggers">
+            <div class="card-header">
+                <h2 class="card-title"><i class="fas fa-history" style="color: var(--primary);"></i> Recent Triggers</h2>
+                <p class="card-description">Latest scheduled executions (Dummy Data)</p>
+            </div>
+            <ul class="trigger-list">
+                <li class="trigger-item">
+                    <span>Daily Backup - Success</span>
+                    <span class="trigger-time">2 hours ago</span>
+                </li>
+                <li class="trigger-item">
+                    <span>Hourly Report - Executed</span>
+                    <span class="trigger-time">45 min ago</span>
+                </li>
+                <li class="trigger-item">
+                    <span>Weekly Cleanup - Failed (Retry)</span>
+                    <span class="trigger-time">1 day ago</span>
+                </li>
+            </ul>
+        </div>
+    </div>
+
+    <!-- Toast Notification -->
+    <div id="toast" class="toast"></div>
+
+    <script>
+        // Form submission handler
+        document.getElementById('scheduleForm').addEventListener('submit', function(e) {
+            showToast('Creating schedule...', 'info');
+        });
+
+        // Delete schedule function (dummy)
+        function deleteSchedule(id) {
+            if (confirm(`Are you sure you want to delete schedule ID ${id}?`)) {
+                // Fetch call to backend
+                showToast('Schedule deleted successfully!', 'success');
+                setTimeout(() => location.reload(), 1000);
+            }
+        }
+
+        // Edit schedule function (dummy)
+        function editSchedule(id) {
+            alert(`Edit schedule ID ${id} (implement modal or redirect)`);
+        }
+
+        // Toast notification function
+        function showToast(message, type = 'info') {
+            const toast = document.getElementById('toast');
+            toast.textContent = message;
+            toast.className = `toast ${type}`;
+            toast.style.display = 'block';
+            
+            setTimeout(() => {
+                toast.style.display = 'none';
+            }, 3000);
+        }
+
+        // Check for URL parameters to show success messages
+        const urlParams = new URLSearchParams(window.location.search);
+        if (urlParams.get('success') === 'schedule-created') {
+            showToast('Schedule created successfully!', 'success');
+        }
+    </script>
+</body>
+</html>
